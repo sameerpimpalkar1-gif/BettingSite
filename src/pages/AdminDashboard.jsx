@@ -1,0 +1,469 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../lib/api';
+
+export default function AdminDashboard() {
+    const [result, setResult] = useState('0');
+    const [upiId, setUpiId] = useState('');
+    const [users, setUsers] = useState([]);
+    const [searchPhone, setSearchPhone] = useState('');
+    const [recharges, setRecharges] = useState([]);
+    const [withdrawals, setWithdrawals] = useState([]);
+    const [bets, setBets] = useState([]);
+    const [notificationMessage, setNotificationMessage] = useState('');
+    const [targetUserPhone, setTargetUserPhone] = useState('');
+    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
+    const [editingUserId, setEditingUserId] = useState(null);
+    const [editBalanceAmount, setEditBalanceAmount] = useState('');
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            const upiData = await api.getUPI();
+            setUpiId(upiData.upiId || '');
+
+            const usersData = await api.getUsers();
+            if (!usersData.error) setUsers(usersData.users);
+
+            const rechargesData = await api.getRecharges();
+            if (!rechargesData.error) setRecharges(rechargesData.requests);
+
+            const withdrawalsData = await api.getWithdrawals();
+            if (!withdrawalsData.error) setWithdrawals(withdrawalsData.requests);
+
+            const betsData = await api.getCurrentBets();
+            if (!betsData.error) setBets(betsData.bets);
+        } catch (err) {
+            console.error('Failed to load data');
+        }
+    };
+
+    const handleSetResult = async () => {
+        setError('');
+        setMessage('');
+        try {
+            const data = await api.setResult(parseInt(result));
+            if (data.error) {
+                setError(data.error);
+            } else {
+                setMessage('Result set successfully! Winnings calculated.');
+                loadData();
+            }
+        } catch (err) {
+            setError('Failed to set result');
+        }
+    };
+
+    const handleUpdateUPI = async () => {
+        setError('');
+        setMessage('');
+        try {
+            const data = await api.updateUPI(upiId);
+            if (data.error) {
+                setError(data.error);
+            } else {
+                setMessage('UPI ID updated successfully!');
+            }
+        } catch (err) {
+            setError('Failed to update UPI');
+        }
+    };
+
+    const handleUpdateBalance = async (userId, amount) => {
+        try {
+            await api.updateBalance(userId, amount);
+            loadData();
+        } catch (err) {
+            console.error('Failed to update balance');
+        }
+    };
+
+    const handleApproveRecharge = async (requestId, approve) => {
+        try {
+            await api.approveRecharge(requestId, approve);
+            loadData();
+        } catch (err) {
+            console.error('Failed to approve recharge');
+        }
+    };
+
+    const handleApproveWithdrawal = async (requestId, approve) => {
+        try {
+            await api.approveWithdrawal(requestId, approve);
+            loadData();
+        } catch (err) {
+            console.error('Failed to approve withdrawal');
+        }
+    };
+
+    const handleSearchUsers = async () => {
+        try {
+            const data = await api.getUsers(searchPhone);
+            if (!data.error) setUsers(data.users);
+        } catch (err) {
+            console.error('Failed to search users');
+        }
+    };
+
+    const handleLogout = async () => {
+        await api.logout();
+        navigate('/admin');
+    };
+
+    const handleCreateNotification = async () => {
+        setError('');
+        setMessage('');
+        try {
+            const data = await api.createNotification(notificationMessage, targetUserPhone);
+            if (data.error) {
+                setError(data.error);
+            } else {
+                setMessage('Notification sent successfully!');
+                setNotificationMessage('');
+                setTargetUserPhone('');
+            }
+        } catch (err) {
+            setError('Failed to create notification');
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-100">
+            <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-4">
+                <div className="max-w-7xl mx-auto flex justify-between items-center">
+                    <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+                    <button
+                        onClick={handleLogout}
+                        className="bg-red-600 px-4 py-2 rounded hover:bg-red-700 transition"
+                    >
+                        Logout
+                    </button>
+                </div>
+            </div>
+
+            <div className="max-w-7xl mx-auto p-4 space-y-4">
+                {message && (
+                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                        {message}
+                    </div>
+                )}
+                {error && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        {error}
+                    </div>
+                )}
+
+                {/* Set Result */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h2 className="text-xl font-bold mb-4">Set Winning Number</h2>
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
+                                let btnColor = 'bg-purple-500 hover:bg-purple-600';
+                                let ringColor = 'ring-purple-400';
+                                let activeColor = 'bg-purple-600';
+                                if ([1, 3, 7, 9].includes(num)) {
+                                    btnColor = 'bg-green-500 hover:bg-green-600';
+                                    ringColor = 'ring-green-400';
+                                    activeColor = 'bg-green-600';
+                                } else if ([2, 4, 6, 8].includes(num)) {
+                                    btnColor = 'bg-red-500 hover:bg-red-600';
+                                    ringColor = 'ring-red-400';
+                                    activeColor = 'bg-red-600';
+                                }
+                                const isSelected = parseInt(result, 10) === num;
+                                return (
+                                    <button
+                                        key={num}
+                                        type="button"
+                                        onClick={() => setResult(String(num))}
+                                        className={`py-3 rounded-lg font-bold text-white transition ${isSelected ? `${activeColor} ring-4 ${ringColor} scale-105` : `${btnColor} opacity-70 hover:opacity-100`}`}
+                                    >
+                                        {num}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <button
+                            onClick={handleSetResult}
+                            className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-md"
+                        >
+                            Set Winning Number
+                        </button>
+                    </div>
+                </div>
+
+                {/* UPI Settings */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h2 className="text-xl font-bold mb-4">UPI Settings</h2>
+                    <div className="flex gap-4">
+                        <input
+                            type="text"
+                            value={upiId}
+                            onChange={(e) => setUpiId(e.target.value)}
+                            placeholder="Enter UPI ID"
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        />
+                        <button
+                            onClick={handleUpdateUPI}
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                        >
+                            Update UPI
+                        </button>
+                    </div>
+                </div>
+
+                {/* Send Notification */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h2 className="text-xl font-bold mb-4">📢 Send Notification</h2>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                            <textarea
+                                value={notificationMessage}
+                                onChange={(e) => setNotificationMessage(e.target.value)}
+                                placeholder="Enter notification message..."
+                                rows="3"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Target User (Optional)</label>
+                            <input
+                                type="text"
+                                value={targetUserPhone}
+                                onChange={(e) => setTargetUserPhone(e.target.value)}
+                                placeholder="Enter phone number or leave empty for all users"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Leave empty to send to all users</p>
+                        </div>
+                        <button
+                            onClick={handleCreateNotification}
+                            className="bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 transition"
+                        >
+                            Send Notification
+                        </button>
+                    </div>
+                </div>
+
+                {/* Users */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h2 className="text-xl font-bold mb-4">Users</h2>
+                    <div className="flex gap-4 mb-4">
+                        <input
+                            type="text"
+                            value={searchPhone}
+                            onChange={(e) => setSearchPhone(e.target.value)}
+                            placeholder="Search by phone"
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        />
+                        <button
+                            onClick={handleSearchUsers}
+                            className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition"
+                        >
+                            Search
+                        </button>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="p-2 text-left">Phone</th>
+                                    <th className="p-2 text-left">Balance</th>
+                                    <th className="p-2 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {users.map((user) => (
+                                    <tr key={user._id} className="border-b">
+                                        <td className="p-2">{user.phone}</td>
+                                        <td className="p-2">₹{user.balance}</td>
+                                        <td className="p-2 space-x-2">
+                                            {editingUserId === user._id ? (
+                                                <div className="flex items-center space-x-2">
+                                                    <input
+                                                        type="number"
+                                                        value={editBalanceAmount}
+                                                        onChange={(e) => setEditBalanceAmount(e.target.value)}
+                                                        placeholder="e.g. 500 or -200"
+                                                        className="px-2 py-1 border border-gray-300 rounded text-xs w-32 focus:outline-none focus:ring-1 focus:ring-blue-500 text-black"
+                                                    />
+                                                    <button
+                                                        onClick={() => {
+                                                            const amount = parseFloat(editBalanceAmount);
+                                                            if (!isNaN(amount)) {
+                                                                handleUpdateBalance(user._id, amount);
+                                                                setEditingUserId(null);
+                                                                setEditBalanceAmount('');
+                                                            }
+                                                        }}
+                                                        className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 font-semibold"
+                                                    >
+                                                        Save
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingUserId(null);
+                                                            setEditBalanceAmount('');
+                                                        }}
+                                                        className="bg-gray-400 text-white px-2 py-1 rounded text-xs hover:bg-gray-500 font-semibold"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingUserId(user._id);
+                                                        setEditBalanceAmount('');
+                                                    }}
+                                                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 font-semibold"
+                                                >
+                                                    Update Balance
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Recharge Requests */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h2 className="text-xl font-bold mb-4">Recharge Requests</h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="p-2 text-left">Phone</th>
+                                    <th className="p-2 text-left">Amount</th>
+                                    <th className="p-2 text-left">Transaction ID</th>
+                                    <th className="p-2 text-left">Status</th>
+                                    <th className="p-2 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recharges.map((req) => (
+                                    <tr key={req._id} className="border-b">
+                                        <td className="p-2">{req.userId?.phone}</td>
+                                        <td className="p-2">₹{req.amount}</td>
+                                        <td className="p-2">{req.transactionId}</td>
+                                        <td className="p-2">{req.status}</td>
+                                        <td className="p-2 space-x-2">
+                                            {req.status === 'pending' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleApproveRecharge(req._id, true)}
+                                                        className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleApproveRecharge(req._id, false)}
+                                                        className="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Withdrawal Requests */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h2 className="text-xl font-bold mb-4">Withdrawal Requests</h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="p-2 text-left">Phone</th>
+                                    <th className="p-2 text-left">Amount</th>
+                                    <th className="p-2 text-left">Bank Details</th>
+                                    <th className="p-2 text-left">Status</th>
+                                    <th className="p-2 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {withdrawals.map((req) => (
+                                    <tr key={req._id} className="border-b">
+                                        <td className="p-2">{req.userId?.phone}</td>
+                                        <td className="p-2">₹{req.amount}</td>
+                                        <td className="p-2 text-xs">
+                                            {req.userId?.bankDetails ? (
+                                                <>
+                                                    {req.userId.bankDetails.accountNumber}<br />
+                                                    {req.userId.bankDetails.ifsc}<br />
+                                                    {req.userId.bankDetails.accountHolder}
+                                                </>
+                                            ) : 'N/A'}
+                                        </td>
+                                        <td className="p-2">{req.status}</td>
+                                        <td className="p-2 space-x-2">
+                                            {req.status === 'pending' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleApproveWithdrawal(req._id, true)}
+                                                        className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleApproveWithdrawal(req._id, false)}
+                                                        className="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Current Round Bets */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h2 className="text-xl font-bold mb-4">Current Round Bets</h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="p-2 text-left">Phone</th>
+                                    <th className="p-2 text-left">Type</th>
+                                    <th className="p-2 text-left">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {bets.map((bet) => (
+                                    <tr key={bet._id} className="border-b">
+                                        <td className="p-2">{bet.userId?.phone}</td>
+                                        <td className="p-2">{bet.betType}{bet.betValue !== null ? ` (${bet.betValue})` : ''}</td>
+                                        <td className="p-2">₹{bet.amount}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        {bets.length === 0 && (
+                            <p className="text-center text-gray-500 py-4">No bets yet</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

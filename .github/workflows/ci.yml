@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-validate:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          # Provide a dummy secret so the build doesn't fail on import-time checks
+          VITE_APP_NAME: BettingSite
+
+      - name: Validate Netlify functions syntax
+        run: |
+          echo "Checking Netlify function syntax..."
+          for file in netlify/functions/*.js; do
+            echo "Validating: $file"
+            node --input-type=module --check < "$file" || (echo "Syntax error in $file" && exit 1)
+          done
+          for file in netlify/functions/utils/*.js; do
+            echo "Validating: $file"
+            node --input-type=module --check < "$file" || (echo "Syntax error in $file" && exit 1)
+          done
+          echo "All function files passed syntax check."
+
+      - name: Check for console.log in production functions
+        run: |
+          echo "Checking for excessive console.log in functions..."
+          count=$(grep -r "console.log" netlify/functions/ --include="*.js" | wc -l)
+          echo "Found $count console.log statements in functions"
+          if [ "$count" -gt 20 ]; then
+            echo "WARNING: Too many console.log statements ($count). Consider removing debug logs."
+          fi
+
+      - name: Verify dist output
+        run: |
+          echo "Checking build output..."
+          if [ ! -d "dist" ]; then
+            echo "ERROR: dist directory not found after build!"
+            exit 1
+          fi
+          if [ ! -f "dist/index.html" ]; then
+            echo "ERROR: dist/index.html not found!"
+            exit 1
+          fi
+          echo "Build output verified. Files in dist:"
+          ls -la dist/
