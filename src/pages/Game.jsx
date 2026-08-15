@@ -318,6 +318,14 @@ export default function Game() {
                     </div>
                 )}
 
+                {/* VNCLUB Branded Header */}
+                <div className="text-center mb-5">
+                    <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 drop-shadow-lg" style={{ letterSpacing: '0.25em', textShadow: '0 0 30px rgba(236,72,153,0.4)' }}>
+                        VNCLUB
+                    </h1>
+                    <div className="h-0.5 w-32 mx-auto mt-1 rounded-full bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-70"></div>
+                </div>
+
                 {/* Navigation */}
                 <div className="grid grid-cols-4 gap-3 mb-6">
                     <button onClick={() => navigate('/game')} className="bg-white bg-opacity-20 backdrop-blur-lg text-white py-3 rounded-lg font-semibold hover:bg-opacity-30 transition">Game</button>
