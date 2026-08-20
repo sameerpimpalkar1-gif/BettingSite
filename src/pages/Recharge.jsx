@@ -53,6 +53,7 @@ export default function Recharge() {
 
     return (
         <div className="min-h-screen bg-gray-100">
+            {/* Header */}
             <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-4">
                 <div className="max-w-4xl mx-auto">
                     <h1 className="text-2xl font-bold">Recharge</h1>
@@ -60,13 +61,16 @@ export default function Recharge() {
             </div>
 
             <div className="max-w-4xl mx-auto p-4">
+
                 {/* Promotional Banner */}
                 <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg shadow-lg p-6 mb-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <span className="text-3xl">🎉</span>
+
                         <h2 className="text-2xl font-bold text-white">
                             First Recharge Bonus!
                         </h2>
+
                         <span className="text-3xl">🎉</span>
                     </div>
 
@@ -85,9 +89,12 @@ export default function Recharge() {
                     </p>
                 </div>
 
+                {/* Main Card */}
                 <div className="bg-white rounded-lg shadow-md p-6">
+
                     {/* UPI Payment Section */}
                     <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-300">
+
                         <p className="text-sm text-gray-600 mb-3 text-center font-semibold">
                             💳 Send Payment To:
                         </p>
@@ -107,17 +114,19 @@ export default function Recharge() {
 
                         {/* QR Code */}
                         <div className="mt-5 flex flex-col items-center">
+
                             <p className="text-sm font-semibold text-gray-700 mb-3">
                                 📱 Scan QR Code to Pay
                             </p>
 
                             <div className="bg-white p-3 rounded-lg shadow-md border-2 border-blue-300">
                                 <img
-                                    src="image/qr.png"
+                                    src="/image/qr.png"
                                     alt="UPI QR Code"
                                     className="w-56 h-56 object-contain"
                                 />
                             </div>
+
                         </div>
 
                         <p className="text-sm text-gray-600 mt-4 text-center">
@@ -125,19 +134,24 @@ export default function Recharge() {
                         </p>
                     </div>
 
+                    {/* Success Message */}
                     {message && (
                         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
                             {message}
                         </div>
                     )}
 
+                    {/* Error Message */}
                     {error && (
                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                             {error}
                         </div>
                     )}
 
+                    {/* Recharge Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
+
+                        {/* Amount */}
                         <div>
                             <label className="block text-gray-700 mb-2">
                                 Amount
@@ -146,7 +160,9 @@ export default function Recharge() {
                             <input
                                 type="number"
                                 value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
+                                onChange={(e) =>
+                                    setAmount(e.target.value)
+                                }
                                 placeholder="Enter amount"
                                 min="1"
                                 required
@@ -154,6 +170,7 @@ export default function Recharge() {
                             />
                         </div>
 
+                        {/* Transaction ID */}
                         <div>
                             <label className="block text-gray-700 mb-2">
                                 Transaction ID
@@ -171,21 +188,27 @@ export default function Recharge() {
                             />
                         </div>
 
+                        {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={loading}
                             className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 transition"
                         >
-                            {loading ? 'Submitting...' : 'Submit Request'}
+                            {loading
+                                ? 'Submitting...'
+                                : 'Submit Request'}
                         </button>
+
                     </form>
 
+                    {/* Back to Game */}
                     <Link
                         to="/game"
                         className="block mt-4 text-center text-blue-600 hover:underline"
                     >
                         Back to Game
                     </Link>
+
                 </div>
             </div>
         </div>
