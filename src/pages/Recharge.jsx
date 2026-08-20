@@ -63,11 +63,11 @@ export default function Recharge() {
                         <span className="text-3xl">🎉</span>
                     </div>
                     <p className="text-white text-lg font-semibold mb-2">
-                        Get 2x Bonus on Your First Recharge!
+                        Get 20% Bonus on Your First Recharge!
                     </p>
                     <div className="bg-white bg-opacity-20 rounded-lg p-3 inline-block">
                         <p className="text-white text-xl font-bold">
-                            ₹5,000 → ₹10,000
+                            ₹10000 → ₹12,000
                         </p>
                     </div>
                     <p className="text-white text-sm mt-2 opacity-90">
