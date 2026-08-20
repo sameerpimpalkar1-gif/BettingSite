@@ -113,7 +113,7 @@ export default function Recharge() {
 
                             <div className="bg-white p-3 rounded-lg shadow-md border-2 border-blue-300">
                                 <img
-                                    src="/image/qr.png"
+                                    src="image/qr.png"
                                     alt="UPI QR Code"
                                     className="w-56 h-56 object-contain"
                                 />
