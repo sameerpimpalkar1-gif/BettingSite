@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 
 export default function Recharge() {
@@ -9,7 +9,6 @@ export default function Recharge() {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
     useEffect(() => {
         loadUPI();
@@ -31,11 +30,17 @@ export default function Recharge() {
         setLoading(true);
 
         try {
-            const data = await api.submitRecharge(parseFloat(amount), transactionId);
+            const data = await api.submitRecharge(
+                parseFloat(amount),
+                transactionId
+            );
+
             if (data.error) {
                 setError(data.error);
             } else {
-                setMessage('Recharge request submitted! Waiting for admin approval.');
+                setMessage(
+                    'Recharge request submitted! Waiting for admin approval.'
+                );
                 setAmount('');
                 setTransactionId('');
             }
@@ -59,33 +64,62 @@ export default function Recharge() {
                 <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg shadow-lg p-6 mb-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <span className="text-3xl">🎉</span>
-                        <h2 className="text-2xl font-bold text-white">First Recharge Bonus!</h2>
+                        <h2 className="text-2xl font-bold text-white">
+                            First Recharge Bonus!
+                        </h2>
                         <span className="text-3xl">🎉</span>
                     </div>
+
                     <p className="text-white text-lg font-semibold mb-2">
                         Get 20% Bonus on Your First Recharge!
                     </p>
+
                     <div className="bg-white bg-opacity-20 rounded-lg p-3 inline-block">
                         <p className="text-white text-xl font-bold">
                             ₹10000 → ₹12,000
                         </p>
                     </div>
+
                     <p className="text-white text-sm mt-2 opacity-90">
                         Double your first deposit instantly!
                     </p>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6">
+                    {/* UPI Payment Section */}
                     <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-300">
                         <p className="text-sm text-gray-600 mb-3 text-center font-semibold">
                             💳 Send Payment To:
                         </p>
+
+                        {/* UPI ID */}
                         <div className="bg-white rounded-lg p-4 shadow-sm border-2 border-blue-400">
                             <p className="text-center">
-                                <span className="text-xs text-gray-500 block mb-1">UPI ID</span>
-                                <span className="text-2xl font-bold text-blue-600 break-all select-all">{upiId}</span>
+                                <span className="text-xs text-gray-500 block mb-1">
+                                    UPI ID
+                                </span>
+
+                                <span className="text-2xl font-bold text-blue-600 break-all select-all">
+                                    {upiId}
+                                </span>
                             </p>
                         </div>
+
+                        {/* QR Code */}
+                        <div className="mt-5 flex flex-col items-center">
+                            <p className="text-sm font-semibold text-gray-700 mb-3">
+                                📱 Scan QR Code to Pay
+                            </p>
+
+                            <div className="bg-white p-3 rounded-lg shadow-md border-2 border-blue-300">
+                                <img
+                                    src="/images/qr.png"
+                                    alt="UPI QR Code"
+                                    className="w-56 h-56 object-contain"
+                                />
+                            </div>
+                        </div>
+
                         <p className="text-sm text-gray-600 mt-4 text-center">
                             📝 After payment, enter transaction details below
                         </p>
@@ -96,6 +130,7 @@ export default function Recharge() {
                             {message}
                         </div>
                     )}
+
                     {error && (
                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                             {error}
@@ -104,7 +139,10 @@ export default function Recharge() {
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-gray-700 mb-2">Amount</label>
+                            <label className="block text-gray-700 mb-2">
+                                Amount
+                            </label>
+
                             <input
                                 type="number"
                                 value={amount}
@@ -117,11 +155,16 @@ export default function Recharge() {
                         </div>
 
                         <div>
-                            <label className="block text-gray-700 mb-2">Transaction ID</label>
+                            <label className="block text-gray-700 mb-2">
+                                Transaction ID
+                            </label>
+
                             <input
                                 type="text"
                                 value={transactionId}
-                                onChange={(e) => setTransactionId(e.target.value)}
+                                onChange={(e) =>
+                                    setTransactionId(e.target.value)
+                                }
                                 placeholder="Enter UPI transaction ID"
                                 required
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
